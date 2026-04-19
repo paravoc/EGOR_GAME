@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Простая игра</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+        }
+        h1 {
+            color: #333;
+        }
+        #score {
+            font-size: 24px;
+            margin: 20px;
+        }
+        button {
+            padding: 20px 40px;
+            font-size: 20px;
+            cursor: pointer;
+            border: none;
+            border-radius: 10px;
+            background: #4CAF50;
+            color: white;
+        }
+        button:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Кликер игра 🎮</h1>
+<p>Нажимай кнопку и зарабатывай очки!</p>
+
+<div id="score">Очки: 0</div>
+<button onclick="addScore()">Клик!</button>
+
+<script>
+    let score = 0;
+
+    function addScore() {
+        score++;
+        document.getElementById("score").innerText = "Очки: " + score;
+    }
+</script>
+
+</body>
+</html>
