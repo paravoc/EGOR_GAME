@@ -1,51 +1,1033 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>Простая игра</title>
-    <style>
-        body {
-            text-align: center;
-            font-family: Arial, sans-serif;
-            background: #f0f0f0;
-        }
-        h1 {
-            color: #333;
-        }
-        #score {
-            font-size: 24px;
-            margin: 20px;
-        }
-        button {
-            padding: 20px 40px;
-            font-size: 20px;
-            cursor: pointer;
-            border: none;
-            border-radius: 10px;
-            background: #4CAF50;
-            color: white;
-        }
-        button:hover {
-            background: #45a049;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neon Pulse</title>
+  <style>
+    :root {
+      --bg1: #0b1020;
+      --bg2: #11182e;
+      --glass: rgba(255, 255, 255, 0.08);
+      --glass-border: rgba(255, 255, 255, 0.18);
+      --text: #f5f7ff;
+      --muted: #b8c0ff;
+      --accent: #7c5cff;
+      --accent-2: #00d4ff;
+      --accent-3: #ff4ecd;
+      --shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    body.light {
+      --bg1: #dfe9f3;
+      --bg2: #f6fbff;
+      --glass: rgba(255, 255, 255, 0.55);
+      --glass-border: rgba(255, 255, 255, 0.7);
+      --text: #131722;
+      --muted: #4b5575;
+      --accent: #5d47ff;
+      --accent-2: #0099ff;
+      --accent-3: #ff2fa0;
+      --shadow: 0 15px 40px rgba(98, 122, 167, 0.18);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: Inter, system-ui, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 20% 20%, rgba(124, 92, 255, 0.22), transparent 30%),
+        radial-gradient(circle at 80% 30%, rgba(0, 212, 255, 0.18), transparent 30%),
+        radial-gradient(circle at 50% 80%, rgba(255, 78, 205, 0.15), transparent 28%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      min-height: 100vh;
+      overflow-x: hidden;
+      transition: background 0.5s ease, color 0.4s ease;
+    }
+
+    canvas#particles {
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      opacity: 0.9;
+    }
+
+    .blur-orb {
+      position: fixed;
+      width: 320px;
+      height: 320px;
+      border-radius: 50%;
+      filter: blur(70px);
+      z-index: -1;
+      pointer-events: none;
+      opacity: 0.35;
+      transition: transform 0.2s linear;
+    }
+
+    .orb1 {
+      background: var(--accent);
+      top: -60px;
+      left: -60px;
+    }
+
+    .orb2 {
+      background: var(--accent-2);
+      right: -60px;
+      top: 140px;
+    }
+
+    .orb3 {
+      background: var(--accent-3);
+      left: 40%;
+      bottom: -120px;
+    }
+
+    .container {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    header {
+      padding: 24px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+      background: rgba(10, 15, 30, 0.18);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    body.light header {
+      background: rgba(255, 255, 255, 0.28);
+      border-bottom: 1px solid rgba(255,255,255,0.5);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .logo-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2), var(--accent-3));
+      box-shadow: 0 8px 25px rgba(124, 92, 255, 0.45);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .logo-badge::after {
+      content: "";
+      position: absolute;
+      inset: 2px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.15);
+    }
+
+    .nav-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: none;
+      outline: none;
+      cursor: pointer;
+      padding: 14px 22px;
+      border-radius: 16px;
+      color: white;
+      font-weight: 700;
+      font-size: 14px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-3));
+      box-shadow: 0 10px 25px rgba(124, 92, 255, 0.35);
+      transition: transform 0.2s ease, box-shadow 0.25s ease, filter 0.25s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px) scale(1.02);
+      filter: brightness(1.05);
+      box-shadow: 0 14px 30px rgba(124, 92, 255, 0.45);
+    }
+
+    .btn.secondary {
+      background: var(--glass);
+      color: var(--text);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+    }
+
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 60px 0 40px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 28px;
+      align-items: center;
+    }
+
+    .glass {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-card {
+      border-radius: 32px;
+      padding: 38px;
+      position: relative;
+      overflow: hidden;
+      transform-style: preserve-3d;
+    }
+
+    .hero-card::before {
+      content: "";
+      position: absolute;
+      width: 240px;
+      height: 240px;
+      background: radial-gradient(circle, rgba(255,255,255,0.22), transparent 70%);
+      top: -90px;
+      right: -90px;
+      transform: rotate(20deg);
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-2), var(--accent-3));
+      box-shadow: 0 0 18px rgba(0,212,255,0.8);
+    }
+
+    h1 {
+      font-size: clamp(38px, 7vw, 76px);
+      line-height: 0.95;
+      margin-bottom: 18px;
+      letter-spacing: -1.8px;
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #ffffff, var(--accent-2), var(--accent-3));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    body.light .gradient-text {
+      background: linear-gradient(135deg, #1d2233, var(--accent), var(--accent-3));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .hero p {
+      font-size: 18px;
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 680px;
+      margin-bottom: 28px;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 26px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 20px;
+    }
+
+    .stat {
+      padding: 20px;
+      border-radius: 24px;
+      text-align: center;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 28px;
+      margin-bottom: 6px;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .demo-panel {
+      border-radius: 30px;
+      padding: 22px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .screen {
+      border-radius: 24px;
+      min-height: 470px;
+      padding: 24px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+      border: 1px solid rgba(255,255,255,0.15);
+      position: relative;
+    }
+
+    .topbar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 22px;
+    }
+
+    .topbar span {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+    }
+
+    .floating-card {
+      border-radius: 24px;
+      padding: 18px;
+      margin-bottom: 16px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.14);
+      backdrop-filter: blur(12px);
+      transition: transform 0.25s ease;
+    }
+
+    .floating-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      height: 120px;
+      margin-top: 16px;
+    }
+
+    .bar {
+      flex: 1;
+      border-radius: 14px 14px 6px 6px;
+      background: linear-gradient(180deg, var(--accent-2), var(--accent), var(--accent-3));
+      animation: pulseBars 2.4s infinite ease-in-out;
+      transform-origin: bottom;
+      box-shadow: 0 8px 24px rgba(124, 92, 255, 0.25);
+    }
+
+    .bar:nth-child(2) { animation-delay: 0.15s; }
+    .bar:nth-child(3) { animation-delay: 0.3s; }
+    .bar:nth-child(4) { animation-delay: 0.45s; }
+    .bar:nth-child(5) { animation-delay: 0.6s; }
+
+    @keyframes pulseBars {
+      0%, 100% { transform: scaleY(0.55); }
+      50% { transform: scaleY(1); }
+    }
+
+    section {
+      padding: 40px 0 90px;
+    }
+
+    .section-title {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    .section-title h2 {
+      font-size: clamp(28px, 4vw, 52px);
+      margin-bottom: 12px;
+    }
+
+    .section-title p {
+      color: var(--muted);
+      font-size: 17px;
+      max-width: 720px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .feature {
+      border-radius: 28px;
+      padding: 28px;
+      transition: transform 0.25s ease, border-color 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature:hover {
+      transform: translateY(-6px);
+      border-color: rgba(255,255,255,0.28);
+    }
+
+    .icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      font-size: 24px;
+      margin-bottom: 18px;
+      background: linear-gradient(135deg, rgba(124, 92, 255, 0.35), rgba(0, 212, 255, 0.25));
+      border: 1px solid rgba(255,255,255,0.14);
+    }
+
+    .feature h3 {
+      font-size: 22px;
+      margin-bottom: 10px;
+    }
+
+    .feature p {
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .interactive {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+      align-items: stretch;
+    }
+
+    .panel {
+      border-radius: 30px;
+      padding: 28px;
+    }
+
+    .counter-value {
+      font-size: clamp(42px, 6vw, 72px);
+      font-weight: 900;
+      margin: 16px 0 20px;
+      letter-spacing: -2px;
+    }
+
+    .counter-controls {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .mini-info {
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .color-card {
+      aspect-ratio: 1/1;
+      border-radius: 20px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+      box-shadow: var(--shadow);
+    }
+
+    .color-card:hover {
+      transform: scale(1.05);
+    }
+
+    .footer {
+      padding: 0 0 40px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(35px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    .reveal.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 980px) {
+      .hero-grid,
+      .interactive,
+      .features {
+        grid-template-columns: 1fr;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .screen {
+        min-height: auto;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .hero-card,
+      .panel,
+      .feature,
+      .demo-panel {
+        padding: 20px;
+        border-radius: 24px;
+      }
+
+      .logo {
+        font-size: 18px;
+      }
+
+      .nav {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .nav-actions {
+        justify-content: space-between;
+      }
+
+      .color-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
 </head>
 <body>
+  <canvas id="particles"></canvas>
+  <div class="blur-orb orb1"></div>
+  <div class="blur-orb orb2"></div>
+  <div class="blur-orb orb3"></div>
 
-<h1>Кликер игра 🎮</h1>
-<p>Нажимай кнопку и зарабатывай очки!</p>
+  <header>
+    <div class="container nav">
+      <div class="logo">
+        <div class="logo-badge"></div>
+        <span>Neon Pulse</span>
+      </div>
+      <div class="nav-actions">
+        <button class="btn secondary" id="themeToggle">Сменить тему</button>
+        <a href="#play" class="btn">Открыть магию</a>
+      </div>
+    </div>
+  </header>
 
-<div id="score">Очки: 0</div>
-<button onclick="addScore()">Клик!</button>
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-card glass reveal" id="tiltCard">
+          <div class="tag">
+            <span class="dot"></span>
+            Однофайловый HTML / CSS / JS
+          </div>
 
-<script>
-    let score = 0;
+          <h1>
+            Очень <span class="gradient-text">красивый сайт</span><br>
+            с крутой логикой
+          </h1>
 
-    function addScore() {
-        score++;
-        document.getElementById("score").innerText = "Очки: " + score;
+          <p>
+            Современный интерфейс, плавные анимации, стеклянный стиль, параллакс,
+            частицы, интерактивные блоки и динамические эффекты прямо в одном HTML-файле.
+          </p>
+
+          <div class="hero-buttons">
+            <a href="#features" class="btn">Посмотреть блоки</a>
+            <button class="btn secondary" id="surpriseBtn">Сюрприз</button>
+          </div>
+
+          <div class="stats">
+            <div class="stat glass">
+              <strong id="stat1">0</strong>
+              <span>Анимаций</span>
+            </div>
+            <div class="stat glass">
+              <strong id="stat2">0</strong>
+              <span>Эффектов</span>
+            </div>
+            <div class="stat glass">
+              <strong id="stat3">0</strong>
+              <span>Вау-уровень</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="demo-panel glass reveal">
+          <div class="screen">
+            <div class="topbar">
+              <span></span><span></span><span></span>
+            </div>
+
+            <div class="floating-card">
+              <h3 style="margin-bottom:10px;">Живая аналитика</h3>
+              <p style="color:var(--muted); line-height:1.6;">
+                График двигается, интерфейс реагирует, а всё работает прямо в браузере без библиотек.
+              </p>
+              <div class="bars">
+                <div class="bar" style="height: 60%;"></div>
+                <div class="bar" style="height: 88%;"></div>
+                <div class="bar" style="height: 70%;"></div>
+                <div class="bar" style="height: 95%;"></div>
+                <div class="bar" style="height: 78%;"></div>
+              </div>
+            </div>
+
+            <div class="floating-card">
+              <h3 style="margin-bottom:10px;">Умная логика</h3>
+              <p style="color:var(--muted); line-height:1.6;">
+                Темы, счётчик, локальное сохранение, интерактивные кнопки, эффекты мыши и красивый UI.
+              </p>
+            </div>
+
+            <div class="floating-card">
+              <h3 style="margin-bottom:10px;">Дизайн будущего</h3>
+              <p style="color:var(--muted); line-height:1.6;">
+                Можно переделать под портфолио, магазин, сайт игры, лендинг или презентацию продукта.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features">
+      <div class="container">
+        <div class="section-title reveal">
+          <h2>Красивые возможности</h2>
+          <p>
+            Этот шаблон не просто красиво выглядит — он ещё и демонстрирует логику интерфейса,
+            взаимодействие с пользователем и приятную динамику.
+          </p>
+        </div>
+
+        <div class="features">
+          <div class="feature glass reveal">
+            <div class="icon">✨</div>
+            <h3>Глассморфизм</h3>
+            <p>
+              Полупрозрачные карточки, мягкие тени и современный интерфейс создают дорогой визуальный стиль.
+            </p>
+          </div>
+
+          <div class="feature glass reveal">
+            <div class="icon">⚡</div>
+            <h3>Живой JS</h3>
+            <p>
+              Сайт реагирует на клики, двигается за мышью, считает действия и сохраняет настройки пользователя.
+            </p>
+          </div>
+
+          <div class="feature glass reveal">
+            <div class="icon">🎨</div>
+            <h3>Смена палитры</h3>
+            <p>
+              Можно менять акцентные цвета интерфейса в реальном времени без перезагрузки страницы.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="play">
+      <div class="container interactive">
+        <div class="panel glass reveal">
+          <div class="tag">
+            <span class="dot"></span>
+            Интерактивный блок
+          </div>
+          <h2 style="font-size: clamp(28px,4vw,48px); margin-bottom:10px;">Мини-логика сайта</h2>
+          <p class="mini-info">
+            Нажимай кнопки, увеличивай энергию сайта и смотри, как интерфейс реагирует.
+            Значение сохраняется даже после перезагрузки страницы.
+          </p>
+
+          <div class="counter-value" id="energyValue">0</div>
+
+          <div class="counter-controls">
+            <button class="btn" id="plusBtn">+ Энергия</button>
+            <button class="btn secondary" id="minusBtn">- Убавить</button>
+            <button class="btn secondary" id="resetBtn">Сброс</button>
+          </div>
+
+          <p class="mini-info" id="energyMessage">
+            Начни взаимодействие с сайтом.
+          </p>
+        </div>
+
+        <div class="panel glass reveal">
+          <div class="tag">
+            <span class="dot"></span>
+            Смена цвета
+          </div>
+          <h2 style="font-size: clamp(28px,4vw,48px); margin-bottom:10px;">Палитра интерфейса</h2>
+          <p class="mini-info">
+            Выбери стиль, и акценты сайта поменяются мгновенно. Это выглядит особенно круто на тёмной теме.
+          </p>
+
+          <div class="color-grid">
+            <div class="color-card" data-c1="#7c5cff" data-c2="#00d4ff" data-c3="#ff4ecd"
+                 style="background: linear-gradient(135deg,#7c5cff,#00d4ff,#ff4ecd);"></div>
+            <div class="color-card" data-c1="#ff7a18" data-c2="#ffd200" data-c3="#ff3cac"
+                 style="background: linear-gradient(135deg,#ff7a18,#ffd200,#ff3cac);"></div>
+            <div class="color-card" data-c1="#00c6ff" data-c2="#0072ff" data-c3="#7c4dff"
+                 style="background: linear-gradient(135deg,#00c6ff,#0072ff,#7c4dff);"></div>
+            <div class="color-card" data-c1="#00f5a0" data-c2="#00d9f5" data-c3="#7b61ff"
+                 style="background: linear-gradient(135deg,#00f5a0,#00d9f5,#7b61ff);"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="container footer">
+      <p>Сделано красиво. Работает в одном файле. HTML + CSS + JS.</p>
+    </div>
+  </main>
+
+  <script>
+    // ТЕМА
+    const body = document.body;
+    const themeToggle = document.getElementById("themeToggle");
+
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "light") body.classList.add("light");
+
+    themeToggle.addEventListener("click", () => {
+      body.classList.toggle("light");
+      localStorage.setItem("theme", body.classList.contains("light") ? "light" : "dark");
+    });
+
+    // АНИМАЦИЯ СЧЁТЧИКОВ
+    function animateValue(id, end, duration = 1500) {
+      const el = document.getElementById(id);
+      let start = 0;
+      const startTime = performance.now();
+
+      function update(now) {
+        const progress = Math.min((now - startTime) / duration, 1);
+        const value = Math.floor(progress * (end - start) + start);
+        el.textContent = value;
+        if (progress < 1) requestAnimationFrame(update);
+      }
+      requestAnimationFrame(update);
     }
-</script>
 
+    animateValue("stat1", 24, 1400);
+    animateValue("stat2", 18, 1600);
+    animateValue("stat3", 99, 1800);
+
+    // REVEAL АНИМАЦИЯ
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add("show");
+      });
+    }, { threshold: 0.15 });
+
+    document.querySelectorAll(".reveal").forEach(el => observer.observe(el));
+
+    // TILT ЭФФЕКТ
+    const tiltCard = document.getElementById("tiltCard");
+    tiltCard.addEventListener("mousemove", (e) => {
+      const rect = tiltCard.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+
+      const rotateX = ((y - centerY) / centerY) * -8;
+      const rotateY = ((x - centerX) / centerX) * 8;
+
+      tiltCard.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+    });
+
+    tiltCard.addEventListener("mouseleave", () => {
+      tiltCard.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg)";
+    });
+
+    // СЮРПРИЗ
+    const surpriseBtn = document.getElementById("surpriseBtn");
+    surpriseBtn.addEventListener("click", () => {
+      document.querySelectorAll(".feature, .panel, .floating-card").forEach((card, i) => {
+        setTimeout(() => {
+          card.animate([
+            { transform: "translateY(0) scale(1)", filter: "brightness(1)" },
+            { transform: "translateY(-8px) scale(1.03)", filter: "brightness(1.15)" },
+            { transform: "translateY(0) scale(1)", filter: "brightness(1)" }
+          ], {
+            duration: 700,
+            easing: "ease"
+          });
+        }, i * 80);
+      });
+    });
+
+    // ЭНЕРГИЯ
+    const energyValue = document.getElementById("energyValue");
+    const energyMessage = document.getElementById("energyMessage");
+    const plusBtn = document.getElementById("plusBtn");
+    const minusBtn = document.getElementById("minusBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    let energy = Number(localStorage.getItem("energy")) || 0;
+
+    function renderEnergy() {
+      energyValue.textContent = energy;
+      localStorage.setItem("energy", energy);
+
+      if (energy <= 0) {
+        energyMessage.textContent = "Начни взаимодействие с сайтом.";
+      } else if (energy < 10) {
+        energyMessage.textContent = "Сайт оживает. Уже становится красиво.";
+      } else if (energy < 25) {
+        energyMessage.textContent = "Мощность растёт. Интерфейс заряжен.";
+      } else if (energy < 50) {
+        energyMessage.textContent = "Это уже премиум-уровень визуала.";
+      } else {
+        energyMessage.textContent = "Максимальный вау-режим активирован.";
+      }
+
+      document.documentElement.style.setProperty("--shadow",
+        energy > 20
+          ? "0 18px 50px rgba(124, 92, 255, 0.28)"
+          : "0 10px 40px rgba(0, 0, 0, 0.35)"
+      );
+    }
+
+    plusBtn.addEventListener("click", () => {
+      energy++;
+      renderEnergy();
+      burstEffect();
+    });
+
+    minusBtn.addEventListener("click", () => {
+      energy = Math.max(0, energy - 1);
+      renderEnergy();
+    });
+
+    resetBtn.addEventListener("click", () => {
+      energy = 0;
+      renderEnergy();
+    });
+
+    renderEnergy();
+
+    // СМЕНА ПАЛИТРЫ
+    document.querySelectorAll(".color-card").forEach(card => {
+      card.addEventListener("click", () => {
+        const c1 = card.dataset.c1;
+        const c2 = card.dataset.c2;
+        const c3 = card.dataset.c3;
+
+        document.documentElement.style.setProperty("--accent", c1);
+        document.documentElement.style.setProperty("--accent-2", c2);
+        document.documentElement.style.setProperty("--accent-3", c3);
+
+        localStorage.setItem("palette", JSON.stringify({ c1, c2, c3 }));
+
+        card.animate([
+          { transform: "scale(1)" },
+          { transform: "scale(1.12)" },
+          { transform: "scale(1)" }
+        ], { duration: 350, easing: "ease" });
+      });
+    });
+
+    const savedPalette = localStorage.getItem("palette");
+    if (savedPalette) {
+      const { c1, c2, c3 } = JSON.parse(savedPalette);
+      document.documentElement.style.setProperty("--accent", c1);
+      document.documentElement.style.setProperty("--accent-2", c2);
+      document.documentElement.style.setProperty("--accent-3", c3);
+    }
+
+    // ЧАСТИЦЫ НА CANVAS
+    const canvas = document.getElementById("particles");
+    const ctx = canvas.getContext("2d");
+
+    let particles = [];
+    let mouse = { x: null, y: null, radius: 120 };
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+
+    window.addEventListener("mousemove", e => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+
+      document.querySelector(".orb1").style.transform =
+        `translate(${e.clientX * 0.02}px, ${e.clientY * 0.015}px)`;
+      document.querySelector(".orb2").style.transform =
+        `translate(${e.clientX * -0.015}px, ${e.clientY * 0.02}px)`;
+      document.querySelector(".orb3").style.transform =
+        `translate(${e.clientX * 0.01}px, ${e.clientY * -0.015}px)`;
+    });
+
+    class Particle {
+      constructor() {
+        this.reset();
+      }
+
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 2.4 + 0.6;
+        this.speedX = (Math.random() - 0.5) * 0.7;
+        this.speedY = (Math.random() - 0.5) * 0.7;
+      }
+
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+
+        if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+          this.reset();
+        }
+
+        if (mouse.x && mouse.y) {
+          const dx = this.x - mouse.x;
+          const dy = this.y - mouse.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < mouse.radius) {
+            this.x += dx / 18;
+            this.y += dy / 18;
+          }
+        }
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(255,255,255,0.75)";
+        ctx.fill();
+      }
+    }
+
+    function initParticles() {
+      particles = [];
+      const count = Math.min(120, Math.floor(window.innerWidth / 12));
+      for (let i = 0; i < count; i++) {
+        particles.push(new Particle());
+      }
+    }
+
+    function connectParticles() {
+      for (let a = 0; a < particles.length; a++) {
+        for (let b = a + 1; b < particles.length; b++) {
+          const dx = particles[a].x - particles[b].x;
+          const dy = particles[a].y - particles[b].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < 90) {
+            ctx.strokeStyle = `rgba(255,255,255,${0.12 - dist / 900})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(particles[a].x, particles[a].y);
+            ctx.lineTo(particles[b].x, particles[b].y);
+            ctx.stroke();
+          }
+        }
+      }
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (const particle of particles) {
+        particle.update();
+        particle.draw();
+      }
+
+      connectParticles();
+      requestAnimationFrame(animateParticles);
+    }
+
+    initParticles();
+    animateParticles();
+
+    // ЭФФЕКТ ВСПЛЕСКА
+    function burstEffect() {
+      const burst = document.createElement("div");
+      burst.style.position = "fixed";
+      burst.style.left = "50%";
+      burst.style.top = "50%";
+      burst.style.width = "20px";
+      burst.style.height = "20px";
+      burst.style.borderRadius = "50%";
+      burst.style.pointerEvents = "none";
+      burst.style.transform = "translate(-50%, -50%)";
+      burst.style.background = "radial-gradient(circle, rgba(255,255,255,0.9), rgba(255,255,255,0))";
+      burst.style.zIndex = "9999";
+      document.body.appendChild(burst);
+
+      burst.animate([
+        { width: "20px", height: "20px", opacity: 0.8 },
+        { width: "320px", height: "320px", opacity: 0 }
+      ], {
+        duration: 600,
+        easing: "ease-out"
+      });
+
+      setTimeout(() => burst.remove(), 650);
+    }
+  </script>
 </body>
 </html>
